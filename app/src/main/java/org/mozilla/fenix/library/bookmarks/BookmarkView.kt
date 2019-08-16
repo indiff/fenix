@@ -7,13 +7,19 @@ package org.mozilla.fenix.library.bookmarks
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
+import androidx.lifecycle.LifecycleCoroutineScope
 import kotlinx.android.synthetic.main.component_bookmark.view.*
+import kotlinx.android.synthetic.main.component_bookmark.view.progress_bar
+import kotlinx.android.synthetic.main.component_history.view.*
 import mozilla.appservices.places.BookmarkRoot
 import mozilla.components.concept.storage.BookmarkNode
 import mozilla.components.support.base.feature.BackHandler
 import org.mozilla.fenix.R
 import org.mozilla.fenix.library.LibraryPageView
 import org.mozilla.fenix.library.SelectionInteractor
+import org.mozilla.fenix.library.history.HistoryState
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Interface for the Bookmarks view.
@@ -93,6 +99,7 @@ interface BookmarkViewInteractor : SelectionInteractor<BookmarkNode> {
 
 class BookmarkView(
     container: ViewGroup,
+    lifecycleScope: LifecycleCoroutineScope,
     val interactor: BookmarkViewInteractor
 ) : LibraryPageView(container), BackHandler {
 
@@ -107,7 +114,7 @@ class BookmarkView(
 
     init {
         view.bookmark_list.apply {
-            bookmarkAdapter = BookmarkAdapter(view.bookmarks_empty_view, interactor)
+            bookmarkAdapter = BookmarkAdapter(view.bookmarks_empty_view, view.progress_bar, interactor, lifecycleScope)
             adapter = bookmarkAdapter
         }
     }

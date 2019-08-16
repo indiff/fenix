@@ -8,9 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.ProgressBar
 import androidx.core.view.isVisible
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
 import mozilla.appservices.places.BookmarkRoot
 import mozilla.components.concept.storage.BookmarkNode
 import mozilla.components.concept.storage.BookmarkNodeType
@@ -21,7 +25,12 @@ import org.mozilla.fenix.library.bookmarks.viewholders.BookmarkItemViewHolder
 import org.mozilla.fenix.library.bookmarks.viewholders.BookmarkNodeViewHolder
 import org.mozilla.fenix.library.bookmarks.viewholders.BookmarkSeparatorViewHolder
 
-class BookmarkAdapter(val emptyView: View, val interactor: BookmarkViewInteractor) :
+class BookmarkAdapter(
+    val emptyView: View,
+    val progressBar: ProgressBar,
+    val interactor: BookmarkViewInteractor,
+    val lifecycleCoroutineScope: LifecycleCoroutineScope
+) :
     RecyclerView.Adapter<BookmarkNodeViewHolder>(), SelectionHolder<BookmarkNode> {
 
     private var tree: List<BookmarkNode> = listOf()
@@ -30,23 +39,37 @@ class BookmarkAdapter(val emptyView: View, val interactor: BookmarkViewInteracto
     private var isFirstRun = true
 
     fun updateData(tree: BookmarkNode?, mode: BookmarkState.Mode) {
-        val diffUtil = DiffUtil.calculateDiff(
-            BookmarkDiffUtil(
-                this.tree,
-                tree?.children ?: listOf(),
-                this.mode,
-                mode
-            )
-        )
-
-        this.tree = tree?.children ?: listOf()
-        isFirstRun = if (isFirstRun) false else {
-            emptyView.isVisible = this.tree.isEmpty()
-            false
+        lifecycleCoroutineScope.launch {
+            internalUpdate(tree, mode)
         }
-        this.mode = mode
+    }
 
-        diffUtil.dispatchUpdatesTo(this)
+    private fun internalUpdate(tree: BookmarkNode?, mode: BookmarkState.Mode) {
+        val oldTree = this.tree
+        val newTree = tree?.children ?: listOf()
+        val oldMode = this.mode
+        val newMode = mode
+
+        lifecycleCoroutineScope.launch {
+            val diffUtil = DiffUtil.calculateDiff(
+                BookmarkDiffUtil(
+                    oldTree,
+                    newTree,
+                    oldMode,
+                    newMode
+                )
+            )
+            launch(Main) {
+                this@BookmarkAdapter.tree = tree?.children ?: listOf()
+                this@BookmarkAdapter.mode = mode
+                isFirstRun = if (isFirstRun) false else {
+                    emptyView.isVisible = this@BookmarkAdapter.tree.isEmpty()
+                    false
+                }
+                diffUtil.dispatchUpdatesTo(this@BookmarkAdapter)
+                progressBar.isVisible = false
+            }
+        }
     }
 
     private class BookmarkDiffUtil(
@@ -73,9 +96,20 @@ class BookmarkAdapter(val emptyView: View, val interactor: BookmarkViewInteracto
         }
 
         return when (viewType) {
-            LibrarySiteItemView.ItemType.SITE.ordinal -> BookmarkItemViewHolder(view, interactor, this)
-            LibrarySiteItemView.ItemType.FOLDER.ordinal -> BookmarkFolderViewHolder(view, interactor, this)
-            LibrarySiteItemView.ItemType.SEPARATOR.ordinal -> BookmarkSeparatorViewHolder(view, interactor)
+            LibrarySiteItemView.ItemType.SITE.ordinal -> BookmarkItemViewHolder(
+                view,
+                interactor,
+                this
+            )
+            LibrarySiteItemView.ItemType.FOLDER.ordinal -> BookmarkFolderViewHolder(
+                view,
+                interactor,
+                this
+            )
+            LibrarySiteItemView.ItemType.SEPARATOR.ordinal -> BookmarkSeparatorViewHolder(
+                view,
+                interactor
+            )
             else -> throw IllegalStateException("ViewType $viewType does not match to a ViewHolder")
         }
     }
