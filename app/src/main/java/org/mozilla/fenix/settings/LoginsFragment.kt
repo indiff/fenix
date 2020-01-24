@@ -10,6 +10,7 @@ import android.app.KeyguardManager
 import android.content.Context.KEYGUARD_SERVICE
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Build.VERSION_CODES.M
 import android.os.Bundle
@@ -112,7 +113,7 @@ class LoginsFragment : PreferenceFragmentCompat(), AccountObserver {
 
         val savedLoginsKey = getPreferenceKey(R.string.pref_key_saved_logins)
         findPreference<Preference>(savedLoginsKey)?.setOnPreferenceClickListener {
-            if (Build.VERSION.SDK_INT >= M && isHardwareAvailable && hasBiometricEnrolled) {
+            if (Build.VERSION.SDK_INT >= M && isHardwareAvailable && hasBiometricEnrolled()) {
                 biometricPrompt.authenticate(promptInfo)
             } else {
                 verifyPinOrShowSetupWarning()
@@ -152,16 +153,28 @@ class LoginsFragment : PreferenceFragmentCompat(), AccountObserver {
         }
     }
 
-    val hasBiometricEnrolled: Boolean by lazy {
+    fun hasBiometricEnrolled(): Boolean {
         if (Build.VERSION.SDK_INT >= M) {
             context?.let {
-                val bm = BiometricManager.from(it)
-                val canAuthenticate = bm.canAuthenticate()
-                (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS)
-            } ?: false
+                if (Build.VERSION.SDK_INT < 29) {
+                    val keyguardManager: KeyguardManager =
+                        it.getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+                    val packageManager: PackageManager = it.packageManager
+                    if (!packageManager.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT) ||
+                        !keyguardManager.isKeyguardSecure
+                    ) {
+                        return false
+                    }
+                } else {
+                    val bm = BiometricManager.from(it)
+                    val canAuthenticate = bm.canAuthenticate()
+                    return (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS)
+                }
+            } ?: return false
         } else {
-            false
+            return false
         }
+        return false
     }
 
     private fun updateSyncPreferenceStatus() {
