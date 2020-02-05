@@ -9,12 +9,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_add_ons_management.*
 import kotlinx.android.synthetic.main.fragment_add_ons_management.view.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import mozilla.components.feature.addons.Addon
 import mozilla.components.feature.addons.AddonManagerException
@@ -31,8 +32,6 @@ import org.mozilla.fenix.ext.showToolbar
  */
 @Suppress("TooManyFunctions")
 class AddonsManagementFragment : Fragment(), AddonsManagerAdapterDelegate {
-    private val scope = CoroutineScope(Dispatchers.IO)
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -77,11 +76,11 @@ class AddonsManagementFragment : Fragment(), AddonsManagerAdapterDelegate {
     private fun bindRecyclerView(view: View) {
         val recyclerView = view.add_ons_list
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        scope.launch {
+        lifecycleScope.launch(IO) {
             try {
                 val addons = requireContext().components.addonManager.getAddons()
 
-                scope.launch(Dispatchers.Main) {
+                launch(Dispatchers.Main) {
                     val adapter = AddonsManagerAdapter(
                         requireContext().components.addonCollectionProvider,
                         this@AddonsManagementFragment,
@@ -90,8 +89,11 @@ class AddonsManagementFragment : Fragment(), AddonsManagerAdapterDelegate {
                     recyclerView.adapter = adapter
                 }
             } catch (e: AddonManagerException) {
-                scope.launch(Dispatchers.Main) {
-                    showSnackBar(view, getString(R.string.mozac_feature_addons_failed_to_query_add_ons))
+                launch(Dispatchers.Main) {
+                    showSnackBar(
+                        view,
+                        getString(R.string.mozac_feature_addons_failed_to_query_add_ons)
+                    )
                 }
             }
         }
@@ -159,7 +161,13 @@ class AddonsManagementFragment : Fragment(), AddonsManagerAdapterDelegate {
             },
             onError = { _, _ ->
                 this@AddonsManagementFragment.view?.let { view ->
-                    showSnackBar(view, getString(R.string.mozac_feature_addons_failed_to_install, addon.translatedName))
+                    showSnackBar(
+                        view,
+                        getString(
+                            R.string.mozac_feature_addons_failed_to_install,
+                            addon.translatedName
+                        )
+                    )
                 }
                 addonProgressOverlay?.visibility = View.GONE
             }
