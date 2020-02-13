@@ -138,23 +138,10 @@ abstract class BaseBrowserFragment : Fragment(), UserInteractionHandler, Session
             )
         }
 
-        // We don't need to wait on shared element transitions for view intents or custom tabs
-        if (getSessionById()?.source == Session.Source.ACTION_VIEW ||
-            getSessionById()?.isCustomTabSession() == true
-        ) {
-            startPostponedEnterTransition()
-        }
-
         return view
     }
 
     final override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // We don't need to wait on shared element transitions for view intents or custom tabs
-        if (getSessionById()?.source != Session.Source.ACTION_VIEW ||
-            getSessionById()?.isCustomTabSession() != true
-        ) {
-            FragmentPreDrawManager(this).execute {}
-        }
         browserInitialized = initializeUI(view) != null
     }
 
@@ -178,7 +165,6 @@ abstract class BaseBrowserFragment : Fragment(), UserInteractionHandler, Session
                 browsingModeManager = requireComponents.browsingModeManager,
                 sessionManager = requireComponents.core.sessionManager,
                 findInPageLauncher = { findInPageIntegration.withFeature { it.launch() } },
-                browserLayout = view.browserLayout,
                 engineView = engineView,
                 swipeRefresh = swipeRefresh,
                 adjustBackgroundAndNavigate = ::adjustBackgroundAndNavigate,

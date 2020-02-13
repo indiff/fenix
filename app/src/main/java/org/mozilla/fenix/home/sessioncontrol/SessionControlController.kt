@@ -333,13 +333,7 @@ class DefaultSessionControlController(
         val session = sessionManager.findSessionById(sessionId)
         sessionManager.select(session!!)
         val directions = HomeFragmentDirections.actionHomeFragmentToBrowserFragment(null)
-        val extras =
-            FragmentNavigator.Extras.Builder()
-                .addSharedElement(tabView,
-                    "$TAB_ITEM_TRANSITION_NAME$sessionId"
-                )
-                .build()
-        navController.nav(R.id.homeFragment, directions, extras)
+        navController.nav(R.id.homeFragment, directions)
     }
 
     override fun handleSelectTopSite(url: String) {

@@ -65,7 +65,6 @@ class DefaultBrowserToolbarController(
     private val browsingModeManager: BrowsingModeManager,
     private val sessionManager: SessionManager,
     private val findInPageLauncher: () -> Unit,
-    private val browserLayout: ViewGroup,
     private val engineView: EngineView,
     private val adjustBackgroundAndNavigate: (NavDirections) -> Unit,
     private val swipeRefresh: SwipeRefreshLayout,
@@ -300,7 +299,7 @@ class DefaultBrowserToolbarController(
         val options = NavOptions.Builder().setPopUpTo(R.id.nav_graph, false)
             .setEnterAnim(R.anim.fade_in).build()
         val extras = FragmentNavigator.Extras.Builder().addSharedElement(
-            browserLayout,
+            swipeRefresh,
             "${TAB_ITEM_TRANSITION_NAME}${currentSession?.id}"
         ).build()
         swipeRefresh.background = ColorDrawable(Color.TRANSPARENT)
