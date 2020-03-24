@@ -33,7 +33,7 @@ class TabCollectionStorage(
         /**
          * A collection has been created
          */
-        fun onCollectionCreated(title: String, sessions: List<Session>) = Unit
+        fun onCollectionCreated(title: String, sessions: List<Session>, tag: String? = null) = Unit
 
         /**
          *  Tab(s) have been added to collection
@@ -48,12 +48,14 @@ class TabCollectionStorage(
 
     var cachedTabCollections = listOf<TabCollection>()
 
+    var cachedRecentlyClosedTabsCollection: TabCollection? = null
+
     private val collectionStorage by lazy {
         TabCollectionStorage(context, sessionManager)
     }
 
-    fun createCollection(title: String, sessions: List<Session>) {
-        collectionStorage.createCollection(title, sessions)
+    fun createCollection(title: String, sessions: List<Session>, tag: String? = null) {
+        collectionStorage.createCollection(title, sessions, tag)
         notifyObservers { onCollectionCreated(title, sessions) }
     }
 
@@ -68,6 +70,14 @@ class TabCollectionStorage(
 
     fun getCollections(limit: Int = 20): LiveData<List<TabCollection>> {
         return collectionStorage.getCollections(limit)
+    }
+
+    fun getCollectionByTag(tag: String): LiveData<List<TabCollection>> {
+        return collectionStorage.getTabCollectionByTag(tag)
+    }
+
+    fun addAndKeepOnlyNewestXTabs(collection: TabCollection, number: Int, sessions: List<Session>) {
+        collectionStorage.addAndKeepOnlyNewestXTabs(collection, number, sessions)
     }
 
     fun getCollectionsPaged(): DataSource.Factory<Int, TabCollection> {

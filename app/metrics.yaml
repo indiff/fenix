@@ -1016,6 +1016,52 @@ history:
       - fenix-core@mozilla.com
     expires: "2020-09-01"
 
+recently_closed_tabs:
+  opened:
+    type: event
+    description: >
+      A user opened the recently closed tabs screen
+    bugs:
+      - tbd
+    data_reviews:
+      - tbd
+    notification_emails:
+      - fenix-core@mozilla.com
+    expires: "2020-09-01"
+  removed:
+    type: event
+    description: >
+      A user removed a recently closed tab item
+    bugs:
+      - tbd
+    data_reviews:
+      - tbd
+    notification_emails:
+      - fenix-core@mozilla.com
+    expires: "2020-09-01"
+  removed_all:
+    type: event
+    description: >
+      A user removed all recently closed tabs items
+    bugs:
+      - tbd
+    data_reviews:
+      - tbd
+    notification_emails:
+      - fenix-core@mozilla.com
+    expires: "2020-09-01"
+  opened_item:
+    type: event
+    description: >
+      A user opened a recently closed tabs item
+    bugs:
+      - tbd
+    data_reviews:
+      - tbd
+    notification_emails:
+      - fenix-core@mozilla.com
+    expires: "2020-09-01"
+
 reader_mode:
   available:
     type: event

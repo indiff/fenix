@@ -134,7 +134,7 @@ class HomeFragment : Fragment() {
     }
 
     private val collectionStorageObserver = object : TabCollectionStorage.Observer {
-        override fun onCollectionCreated(title: String, sessions: List<Session>) {
+        override fun onCollectionCreated(title: String, sessions: List<Session>, tag: String?) {
             scrollAndAnimateCollection(sessions.size)
         }
 
@@ -375,6 +375,7 @@ class HomeFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         subscribeToTabCollections()
+        subscribeToRecentlyDeletedTabCollections()
         subscribeToTopSites()
 
         val context = requireContext()
@@ -681,6 +682,31 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun subscribeToRecentlyDeletedTabCollections(): Observer<List<TabCollection>> {
+        if (context?.settings()?.recentlyDeletedTabsCreated != true) {
+            lifecycleScope.launch(IO) {
+                requireComponents.core.tabCollectionStorage.createCollection(
+                    "Recently Deleted Tabs",
+                    listOf(),
+                    "recently_deleted_tabs"
+                )
+            }
+            context!!.settings().preferences.edit()
+                .putBoolean(context?.getString(R.string.recently_deleted_tabs_created), true)
+                .apply()
+        }
+        return Observer<List<TabCollection>> {
+            // There should only be 1 but get the first
+            if (it.isNotEmpty()) {
+                requireComponents.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection =
+                    it[0]
+            }
+        }.also { observer ->
+            requireComponents.core.tabCollectionStorage.getCollectionByTag("recently_deleted_tabs")
+                .observe(this, observer)
+        }
+    }
+
     private fun subscribeToTopSites(): Observer<List<TopSite>> {
         return Observer<List<TopSite>> { topSites ->
             requireComponents.core.topSiteStorage.cachedTopSites = topSites
@@ -699,6 +725,15 @@ class HomeFragment : Fragment() {
         }
 
         val deleteOperation: (suspend () -> Unit) = {
+            requireComponents.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection?.let {
+                lifecycleScope.launch(IO) {
+                    requireComponents.core.tabCollectionStorage.addAndKeepOnlyNewestXTabs(
+                        it,
+                        25,
+                        listOfSessionsToDelete.toList()
+                    )
+                }
+            }
             listOfSessionsToDelete.forEach {
                 sessionManager.remove(it)
                 requireComponents.core.pendingSessionDeletionManager.removeSession(it.id)
@@ -739,6 +774,15 @@ class HomeFragment : Fragment() {
             sessionManager.findSessionById(sessionId)
                 ?.let { session ->
                     pendingSessionDeletion = null
+                    requireComponents.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection?.let {
+                        lifecycleScope.launch(IO) {
+                            requireComponents.core.tabCollectionStorage.addAndKeepOnlyNewestXTabs(
+                                it,
+                                25,
+                                listOf(session)
+                            )
+                        }
+                    }
                     sessionManager.remove(session)
                     requireComponents.core.pendingSessionDeletionManager.removeSession(sessionId)
                 }

@@ -62,7 +62,7 @@ interface SessionControlController {
     /**
      * @see [CollectionInteractor.onCollectionOpenTabClicked]
      */
-    fun handleCollectionOpenTabClicked(tab: ComponentTab)
+    fun handleCollectionOpenTabClicked(collection: TabCollection, tab: ComponentTab)
 
     /**
      * @see [CollectionInteractor.onCollectionOpenTabsTapped]
@@ -199,7 +199,7 @@ class DefaultSessionControlController(
         )
     }
 
-    override fun handleCollectionOpenTabClicked(tab: ComponentTab) {
+    override fun handleCollectionOpenTabClicked(collection: TabCollection, tab: ComponentTab) {
         invokePendingDeleteJobs()
 
         sessionManager.restore(

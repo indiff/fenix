@@ -264,7 +264,16 @@
         <action
             android:id="@+id/action_libraryFragment_to_bookmarksFragment"
             app:destination="@+id/bookmarkFragment" />
+        <action
+            android:id="@+id/action_libraryFragment_to_recentlyClosedFragment"
+            app:destination="@+id/recentlyClosedFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/recentlyClosedFragment"
+        android:name="org.mozilla.fenix.library.recentlyclosed.RecentlyClosedTabsFragment"
+        android:label="@string/library_recently_closed_tabs"
+        tools:layout="@layout/fragment_recently_closed_tabs" />
 
     <fragment
         android:id="@+id/historyFragment"

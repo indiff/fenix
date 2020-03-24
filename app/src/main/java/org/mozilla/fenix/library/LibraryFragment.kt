@@ -41,7 +41,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
 
         libraryHistory.setOnClickListener {
             requireComponents.analytics.metrics
-                .track(Event.LibrarySelectedItem(view.context.getString(R.string.library_history)))
+                .track(Event.LibrarySelectedItem(Event.LibrarySelectedItem.Item.ITEM_HISTORY))
             nav(
                 R.id.libraryFragment,
                 LibraryFragmentDirections.actionLibraryFragmentToHistoryFragment()
@@ -50,12 +50,21 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
 
         libraryBookmarks.setOnClickListener {
             requireComponents.analytics.metrics
-                .track(Event.LibrarySelectedItem(view.context.getString(R.string.library_bookmarks)))
+                .track(Event.LibrarySelectedItem(Event.LibrarySelectedItem.Item.ITEM_BOOKMARKS))
             nav(
                 R.id.libraryFragment,
                 LibraryFragmentDirections.actionLibraryFragmentToBookmarksFragment(BookmarkRoot.Mobile.id)
             )
         }
+
+//        libraryRecentlyClosed.setOnClickListener {
+//            requireComponents.analytics.metrics
+//                .track(Event.LibrarySelectedItem(Event.LibrarySelectedItem.Item.ITEM_RECENTLY_CLOSED_TABS))
+//            nav(
+//                R.id.libraryFragment,
+//                LibraryFragmentDirections.actionLibraryFragmentToRecentlyClosedFragment()
+//            )
+//        }
 
         requireComponents.analytics.metrics.track(Event.LibraryOpened)
     }

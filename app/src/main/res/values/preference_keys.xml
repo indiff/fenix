@@ -156,4 +156,6 @@
 
     <string name="pref_key_encryption_key_generated" translatable="false">pref_key_encryption_key_generated</string>
     <string name="default_top_sites_added" translatable="false">pref_key_pocket_top_site_added</string>
+
+    <string name="recently_deleted_tabs_created" translatable="false">recently_deleted_tabs_created</string>
 </resources>

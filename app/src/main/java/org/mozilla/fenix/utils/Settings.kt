@@ -290,6 +290,11 @@ class Settings private constructor(
         true
     )
 
+    val recentlyDeletedTabsCreated by booleanPreference(
+        appContext.getPreferenceKey(R.string.recently_deleted_tabs_created),
+        false
+    )
+
     val shouldUseFixedTopToolbar: Boolean
         get() {
             return touchExplorationIsEnabled || switchServiceIsEnabled

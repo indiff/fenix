@@ -3,11 +3,12 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        tools:context="org.mozilla.fenix.library.LibraryFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context="org.mozilla.fenix.library.LibraryFragment">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,6 +34,17 @@
             android:focusable="true"
             app:listItemIcon="@drawable/library_icon_history_circle_background"
             app:listItemTitle="@string/library_history" />
+
+        <org.mozilla.fenix.library.LibraryListItem
+            android:id="@+id/libraryRecentlyClosed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:contentDescription="@string/library_recently_closed_tabs"
+            android:focusable="true"
+            app:listItemIcon="@drawable/closed_tabs_circle_background"
+            app:listItemTitle="@string/library_recently_closed_tabs" />
     </LinearLayout>
 </ScrollView>
 

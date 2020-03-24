@@ -152,6 +152,7 @@ sealed class Event {
     object PocketTopSiteClicked : Event()
     object PocketTopSiteRemoved : Event()
     object FennecToFenixMigrated : Event()
+    object RecentlyClosedTabsOpened : Event()
 
     // Interaction events with extras
 
@@ -236,9 +237,11 @@ sealed class Event {
             )
     }
 
-    data class LibrarySelectedItem(val item: String) : Event() {
+    data class LibrarySelectedItem(val item: Item) : Event() {
+        enum class Item { ITEM_HISTORY, ITEM_BOOKMARKS, ITEM_RECENTLY_CLOSED_TABS }
+
         override val extras: Map<Library.selectedItemKeys, String>?
-            get() = mapOf(Library.selectedItemKeys.item to item)
+            get() = mapOf(Library.selectedItemKeys.item to item.name)
     }
 
     data class ErrorPageVisited(val errorType: ErrorType) : Event() {

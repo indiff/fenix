@@ -53,7 +53,7 @@ class TabInCollectionViewHolder(
         }
 
         view.setOnClickListener {
-            interactor.onCollectionOpenTabClicked(tab)
+            interactor.onCollectionOpenTabClicked(collection, tab)
         }
 
         list_item_action_button.increaseTapArea(buttonIncreaseDps)
