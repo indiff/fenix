@@ -139,6 +139,7 @@ class CollectionItemMenu(
                 onItemTapped.invoke(Item.AddTab)
             }.apply { visible = { sessionHasOpenTabs } },
 
+            // TODO change this to "remove all tabs" if this is a default collection
             SimpleBrowserMenuItem(
                 context.getString(R.string.collection_delete),
                 textColorResource = ThemeManager.resolveAttribute(R.attr.destructive, context)

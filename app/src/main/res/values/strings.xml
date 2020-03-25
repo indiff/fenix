@@ -1284,4 +1284,14 @@
     <string name="login_deletion_confirmation">Are you sure you want to delete this login?</string>
     <!-- Positive action of a dialog asking to delete  -->
     <string name="dialog_delete_positive">Delete</string>
+    <!-- Title for Recently Deleted Tabs collection -->
+    <string name="recently_deleted_tabs_title">Recently Deleted Tabs</string>
+
+    <!-- Automatically close tabs -->
+    <string name="automatically_close_tabs_title">Automatically close tabs</string>
+    <string name="auto_close_tabs_description">%s</string>
+    <string name="auto_close_tabs_never">Don\'t close automatically</string>
+    <string name="auto_close_tabs_one_day">After one day</string>
+    <string name="auto_close_tabs_one_week">After one week</string>
+    <string name="auto_close_tabs_one_month">After one month</string>
 </resources>

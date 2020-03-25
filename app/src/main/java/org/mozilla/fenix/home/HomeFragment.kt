@@ -245,9 +245,9 @@ class HomeFragment : Fragment() {
 
         if (!shouldUseBottomToolbar) {
             view.toolbarLayout.layoutParams = CoordinatorLayout.LayoutParams(
-                ConstraintLayout.LayoutParams.MATCH_PARENT,
-                ConstraintLayout.LayoutParams.WRAP_CONTENT
-            )
+                    ConstraintLayout.LayoutParams.MATCH_PARENT,
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT
+                )
                 .apply {
                     gravity = Gravity.TOP
                 }
@@ -683,27 +683,58 @@ class HomeFragment : Fragment() {
     }
 
     private fun subscribeToRecentlyDeletedTabCollections(): Observer<List<TabCollection>> {
+        createRecentlyDeletedCollection()
+        return Observer<List<TabCollection>> {
+            // There should only be 1 so get the first
+            if (it.isNotEmpty()) {
+                requireComponents.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection =
+                    it[0].also { collection ->
+                        checkForAutoCloseSessions(collection)
+                    }
+            }
+        }.also { observer ->
+            requireComponents.core.tabCollectionStorage.getCollectionByTag(getString(R.string.recently_deleted_tabs))
+                .observe(this, observer)
+        }
+    }
+
+    private fun createRecentlyDeletedCollection() {
         if (context?.settings()?.recentlyDeletedTabsCreated != true) {
             lifecycleScope.launch(IO) {
                 requireComponents.core.tabCollectionStorage.createCollection(
-                    "Recently Deleted Tabs",
+                    getString(R.string.recently_deleted_tabs_title),
                     listOf(),
-                    "recently_deleted_tabs"
+                    getString(R.string.recently_deleted_tabs)
                 )
             }
             context!!.settings().preferences.edit()
                 .putBoolean(context?.getString(R.string.recently_deleted_tabs_created), true)
                 .apply()
         }
-        return Observer<List<TabCollection>> {
-            // There should only be 1 but get the first
-            if (it.isNotEmpty()) {
-                requireComponents.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection =
-                    it[0]
+    }
+
+    private fun checkForAutoCloseSessions(recentlyClosedCollection: TabCollection) {
+        // Removes sessions that have timed out and add them to recently deleted
+        val autoCloseSessions = if (requireContext().settings().autoCloseTabsSelection != "never") {
+            val timeFrame =
+                when (requireContext().settings().autoCloseTabsSelection) {
+                    "one-day" -> 60 * 60 * 24 * 1000L
+                    "one-week" -> 60 * 60 * 24 * 7 * 1000L
+                    else -> 60 * 60 * 24 * 31 * 1000L
+                }
+            val sessionManager = requireComponents.core.sessionManager
+            sessionManager.sessions.filter {
+                (System.currentTimeMillis() - it.lastTouched) > timeFrame
             }
-        }.also { observer ->
-            requireComponents.core.tabCollectionStorage.getCollectionByTag("recently_deleted_tabs")
-                .observe(this, observer)
+        } else listOf()
+        if (autoCloseSessions.isNotEmpty()) {
+            lifecycleScope.launch(IO) {
+                requireComponents.core.tabCollectionStorage.addTabsToCollection(
+                    recentlyClosedCollection,
+                    autoCloseSessions
+                )
+            }
+            autoCloseSessions.forEach { sessionManager.remove(it) }
         }
     }
 

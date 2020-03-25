@@ -8,6 +8,7 @@ import android.view.View
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import mozilla.components.browser.session.SessionManager
 import mozilla.components.browser.state.store.BrowserStore
@@ -218,6 +219,17 @@ class DefaultSessionControlController(
             }
         )
 
+        if (collection.id ==
+            activity.components.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection?.id
+        ) {
+            lifecycleScope.launch(IO) {
+                activity.components.core.tabCollectionStorage.removeTabFromCollection(
+                    collection,
+                    tab
+                )
+            }
+        }
+
         metrics.track(Event.CollectionTabRestored)
     }
 
@@ -232,6 +244,19 @@ class DefaultSessionControlController(
                 activity.components.useCases.tabsUseCases.addTab.invoke(url)
             }
         )
+
+        if (collection.id ==
+            activity.components.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection?.id
+        ) {
+            collection.tabs.forEach {
+                lifecycleScope.launch(IO) {
+                    activity.components.core.tabCollectionStorage.removeTabFromCollection(
+                        collection,
+                        it
+                    )
+                }
+            }
+        }
 
         scrollToTheTop()
         metrics.track(Event.CollectionAllTabsRestored)

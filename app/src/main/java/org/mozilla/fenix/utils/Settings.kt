@@ -614,4 +614,9 @@ class Settings private constructor(
         appContext.getPreferenceKey(R.string.pref_key_override_sync_tokenserver),
         default = ""
     )
+
+    val autoCloseTabsSelection by stringPreference(
+        appContext.getPreferenceKey(R.string.pref_key_auto_close_tabs),
+        "never"
+    )
 }

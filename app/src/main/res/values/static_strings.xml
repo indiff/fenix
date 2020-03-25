@@ -32,4 +32,6 @@
     <string name="default_top_site_youtube" translatable="false">YouTube</string>
     <!-- Application Services abbreviation used in AboutFragment -->
     <string name="app_services_abbreviation" translatable="false">AS</string>
+    <!-- Extra tag added to recently deleted tabs collection -->
+    <string name="recently_deleted_tabs" translatable="false">"recently_deleted_tabs"</string>
 </resources>

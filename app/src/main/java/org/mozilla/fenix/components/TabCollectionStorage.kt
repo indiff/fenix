@@ -78,6 +78,7 @@ class TabCollectionStorage(
 
     fun addAndKeepOnlyNewestXTabs(collection: TabCollection, number: Int, sessions: List<Session>) {
         collectionStorage.addAndKeepOnlyNewestXTabs(collection, number, sessions)
+        notifyObservers { onTabsAdded(collection, sessions) }
     }
 
     fun getCollectionsPaged(): DataSource.Factory<Int, TabCollection> {
@@ -89,7 +90,9 @@ class TabCollectionStorage(
     }
 
     fun removeTabFromCollection(tabCollection: TabCollection, tab: Tab) {
-        if (tabCollection.tabs.size == 1) {
+        if (tabCollection.tabs.size == 1 &&
+            tabCollection.id != cachedRecentlyClosedTabsCollection?.id
+        ) {
             removeCollection(tabCollection)
         } else {
             collectionStorage.removeTabFromCollection(tabCollection, tab)
