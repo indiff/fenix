@@ -375,7 +375,7 @@ class HomeFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         subscribeToTabCollections()
-        subscribeToRecentlyDeletedTabCollections()
+        setupRecentlyDeletedTabsCollection()
         subscribeToTopSites()
 
         val context = requireContext()
@@ -682,34 +682,25 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun subscribeToRecentlyDeletedTabCollections(): Observer<List<TabCollection>> {
-        createRecentlyDeletedCollection()
-        return Observer<List<TabCollection>> {
-            // There should only be 1 so get the first
-            if (it.isNotEmpty()) {
-                requireComponents.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection =
-                    it[0].also { collection ->
-                        checkForAutoCloseSessions(collection)
-                    }
-            }
-        }.also { observer ->
-            requireComponents.core.tabCollectionStorage.getCollectionByTag(getString(R.string.recently_deleted_tabs))
-                .observe(this, observer)
-        }
-    }
-
-    private fun createRecentlyDeletedCollection() {
+    private fun setupRecentlyDeletedTabsCollection() {
         if (context?.settings()?.recentlyDeletedTabsCreated != true) {
             lifecycleScope.launch(IO) {
                 requireComponents.core.tabCollectionStorage.createCollection(
                     getString(R.string.recently_deleted_tabs_title),
                     listOf(),
-                    getString(R.string.recently_deleted_tabs)
+                    getString(R.string.recently_deleted_tabs_collection_tag)
                 )
             }
             context!!.settings().preferences.edit()
                 .putBoolean(context?.getString(R.string.recently_deleted_tabs_created), true)
                 .apply()
+        }
+        lifecycleScope.launch(IO) {
+            checkForAutoCloseSessions(
+                requireComponents.core.tabCollectionStorage.getCollectionByTag(
+                    getString(R.string.recently_deleted_tabs_collection_tag)
+                )
+            )
         }
     }
 
@@ -727,11 +718,15 @@ class HomeFragment : Fragment() {
                 (System.currentTimeMillis() - it.lastTouched) > timeFrame
             }
         } else listOf()
-        if (autoCloseSessions.isNotEmpty()) {
+        val cachedDeletedSessions =
+            requireComponents.core.pendingSessionDeletionManager.getCachedSessions()
+        requireComponents.core.pendingSessionDeletionManager.clearCachedSessions()
+        if (autoCloseSessions.isNotEmpty() || cachedDeletedSessions.isNotEmpty()) {
             lifecycleScope.launch(IO) {
-                requireComponents.core.tabCollectionStorage.addTabsToCollection(
+                requireComponents.core.tabCollectionStorage.addAndKeepOnlyNewestXTabs(
                     recentlyClosedCollection,
-                    autoCloseSessions
+                    25,
+                    autoCloseSessions + cachedDeletedSessions
                 )
             }
             autoCloseSessions.forEach { sessionManager.remove(it) }
@@ -756,16 +751,16 @@ class HomeFragment : Fragment() {
         }
 
         val deleteOperation: (suspend () -> Unit) = {
-            requireComponents.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection?.let {
+            listOfSessionsToDelete.forEach {
                 lifecycleScope.launch(IO) {
                     requireComponents.core.tabCollectionStorage.addAndKeepOnlyNewestXTabs(
-                        it,
+                        requireComponents.core.tabCollectionStorage.getCollectionByTag(
+                            getString(R.string.recently_deleted_tabs_collection_tag)
+                        ),
                         25,
-                        listOfSessionsToDelete.toList()
+                        listOf(it)
                     )
                 }
-            }
-            listOfSessionsToDelete.forEach {
                 sessionManager.remove(it)
                 requireComponents.core.pendingSessionDeletionManager.removeSession(it.id)
             }
@@ -805,14 +800,14 @@ class HomeFragment : Fragment() {
             sessionManager.findSessionById(sessionId)
                 ?.let { session ->
                     pendingSessionDeletion = null
-                    requireComponents.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection?.let {
-                        lifecycleScope.launch(IO) {
-                            requireComponents.core.tabCollectionStorage.addAndKeepOnlyNewestXTabs(
-                                it,
-                                25,
-                                listOf(session)
-                            )
-                        }
+                    lifecycleScope.launch(IO) {
+                        requireComponents.core.tabCollectionStorage.addAndKeepOnlyNewestXTabs(
+                            requireComponents.core.tabCollectionStorage.getCollectionByTag(
+                                getString(R.string.recently_deleted_tabs_collection_tag)
+                            ),
+                            25,
+                            listOf(session)
+                        )
                     }
                     sessionManager.remove(session)
                     requireComponents.core.pendingSessionDeletionManager.removeSession(sessionId)

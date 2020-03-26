@@ -76,6 +76,11 @@ interface SessionControlController {
     fun handleCollectionRemoveTab(collection: TabCollection, tab: ComponentTab)
 
     /**
+     * @see [CollectionInteractor.onCollectionRemoveAllTabs]
+     */
+    fun handleCollectionRemoveAllTabs(collection: TabCollection)
+
+    /**
      * @see [CollectionInteractor.onCollectionShareTabsClicked]
      */
     fun handleCollectionShareTabsClicked(collection: TabCollection)
@@ -219,9 +224,7 @@ class DefaultSessionControlController(
             }
         )
 
-        if (collection.id ==
-            activity.components.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection?.id
-        ) {
+        if (collection.tag == activity.getString(R.string.recently_deleted_tabs_collection_tag)) {
             lifecycleScope.launch(IO) {
                 activity.components.core.tabCollectionStorage.removeTabFromCollection(
                     collection,
@@ -245,9 +248,7 @@ class DefaultSessionControlController(
             }
         )
 
-        if (collection.id ==
-            activity.components.core.tabCollectionStorage.cachedRecentlyClosedTabsCollection?.id
-        ) {
+        if (collection.tag == activity.getString(R.string.recently_deleted_tabs_collection_tag)) {
             collection.tabs.forEach {
                 lifecycleScope.launch(IO) {
                     activity.components.core.tabCollectionStorage.removeTabFromCollection(
@@ -267,6 +268,14 @@ class DefaultSessionControlController(
 
         lifecycleScope.launch(Dispatchers.IO) {
             tabCollectionStorage.removeTabFromCollection(collection, tab)
+        }
+    }
+
+    override fun handleCollectionRemoveAllTabs(collection: TabCollection) {
+        lifecycleScope.launch(IO) {
+            collection.tabs.forEach {
+                tabCollectionStorage.removeTabFromCollection(collection, it)
+            }
         }
     }
 
@@ -339,7 +348,7 @@ class DefaultSessionControlController(
             tabs.size > 1 -> SaveCollectionStep.SelectTabs
             // If there is an existing tab collection, show the SelectCollection fragment to save
             // the selected tab to a collection of your choice.
-            tabCollectionStorage.cachedTabCollections.isNotEmpty() -> SaveCollectionStep.SelectCollection
+            tabCollectionStorage.nonDefaultTabCollections.isNotEmpty() -> SaveCollectionStep.SelectCollection
             // Show the NameCollection fragment to create a new collection for the selected tab.
             else -> SaveCollectionStep.NameCollection
         }

@@ -55,7 +55,8 @@ class CollectionCreationFragment : DialogFragment() {
             if (tabs.size == 1) setOf(tabs.first()) else emptySet()
         }
 
-        val tabCollections = requireComponents.core.tabCollectionStorage.cachedTabCollections
+        // We don't want to be able to edit our default collection in this way
+        val tabCollections = requireComponents.core.tabCollectionStorage.nonDefaultTabCollections
         val selectedTabCollection = args.selectedTabCollectionId
             .let { id -> tabCollections.firstOrNull { it.id == id } }
 

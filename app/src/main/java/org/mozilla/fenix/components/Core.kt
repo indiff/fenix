@@ -143,6 +143,7 @@ class Core(private val context: Context) {
                 pendingSessionDeletionManager.getSessionsToDelete(context).forEach {
                     sessionManager.findSessionById(it)?.let { session ->
                         sessionManager.remove(session)
+                        pendingSessionDeletionManager.addCachedSession(session)
                     }
                 }
 

@@ -37,10 +37,19 @@ class CollectionViewHolder(
     init {
         collectionMenu = CollectionItemMenu(view.context, sessionHasOpenTabs) {
             when (it) {
-                is CollectionItemMenu.Item.DeleteCollection -> interactor.onDeleteCollectionTapped(collection)
+                is CollectionItemMenu.Item.DeleteCollection -> interactor.onDeleteCollectionTapped(
+                    collection
+                )
                 is CollectionItemMenu.Item.AddTab -> interactor.onCollectionAddTabTapped(collection)
-                is CollectionItemMenu.Item.RenameCollection -> interactor.onRenameCollectionTapped(collection)
-                is CollectionItemMenu.Item.OpenTabs -> interactor.onCollectionOpenTabsTapped(collection)
+                is CollectionItemMenu.Item.RenameCollection -> interactor.onRenameCollectionTapped(
+                    collection
+                )
+                is CollectionItemMenu.Item.OpenTabs -> interactor.onCollectionOpenTabsTapped(
+                    collection
+                )
+                is CollectionItemMenu.Item.RemoveAllTabs -> interactor.onCollectionRemoveAllTabs(
+                    collection
+                )
             }
         }
 
@@ -71,6 +80,7 @@ class CollectionViewHolder(
         this.expanded = expanded
         this.sessionHasOpenTabs = sessionHasOpenTabs
         collectionMenu.sessionHasOpenTabs = sessionHasOpenTabs
+        collectionMenu.collectionTag = collection.tag
         updateCollectionUI()
     }
 
@@ -108,6 +118,7 @@ class CollectionViewHolder(
 class CollectionItemMenu(
     private val context: Context,
     var sessionHasOpenTabs: Boolean,
+    var collectionTag: String? = null,
     private val onItemTapped: (Item) -> Unit = {}
 ) {
     sealed class Item {
@@ -115,6 +126,7 @@ class CollectionItemMenu(
         object AddTab : Item()
         object RenameCollection : Item()
         object OpenTabs : Item()
+        object RemoveAllTabs : Item()
     }
 
     val menuBuilder by lazy { BrowserMenuBuilder(menuItems) }
@@ -131,6 +143,8 @@ class CollectionItemMenu(
                 context.getString(R.string.collection_rename)
             ) {
                 onItemTapped.invoke(Item.RenameCollection)
+            }.apply {
+                visible = { collectionTag == null }
             },
 
             SimpleBrowserMenuItem(
@@ -139,12 +153,22 @@ class CollectionItemMenu(
                 onItemTapped.invoke(Item.AddTab)
             }.apply { visible = { sessionHasOpenTabs } },
 
-            // TODO change this to "remove all tabs" if this is a default collection
             SimpleBrowserMenuItem(
                 context.getString(R.string.collection_delete),
                 textColorResource = ThemeManager.resolveAttribute(R.attr.destructive, context)
             ) {
                 onItemTapped.invoke(Item.DeleteCollection)
+            }.apply {
+                visible = { collectionTag == null }
+            },
+
+            SimpleBrowserMenuItem(
+                context.getString(R.string.collection_remove_all_tabs),
+                textColorResource = ThemeManager.resolveAttribute(R.attr.destructive, context)
+            ) {
+                onItemTapped.invoke(Item.RemoveAllTabs)
+            }.apply {
+                visible = { collectionTag != null }
             }
         )
     }

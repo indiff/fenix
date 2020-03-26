@@ -14,6 +14,7 @@ import mozilla.components.feature.tab.collections.TabCollection
 import mozilla.components.feature.tab.collections.TabCollectionStorage
 import mozilla.components.support.base.observer.Observable
 import mozilla.components.support.base.observer.ObserverRegistry
+import org.mozilla.fenix.R
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.toShortUrl
 import org.mozilla.fenix.home.sessioncontrol.viewholders.CollectionViewHolder
@@ -47,8 +48,12 @@ class TabCollectionStorage(
     }
 
     var cachedTabCollections = listOf<TabCollection>()
+        set(value) {
+            field = value
+            nonDefaultTabCollections = value.filter { it.tag == null }
+        }
 
-    var cachedRecentlyClosedTabsCollection: TabCollection? = null
+    var nonDefaultTabCollections = listOf<TabCollection>()
 
     private val collectionStorage by lazy {
         TabCollectionStorage(context, sessionManager)
@@ -72,10 +77,10 @@ class TabCollectionStorage(
         return collectionStorage.getCollections(limit)
     }
 
-    fun getCollectionByTag(tag: String): LiveData<List<TabCollection>> {
-        return collectionStorage.getTabCollectionByTag(tag)
-    }
+    fun getCollectionByTag(tag: String): TabCollection =
+        collectionStorage.getTabCollectionByTag(tag)
 
+    @Synchronized
     fun addAndKeepOnlyNewestXTabs(collection: TabCollection, number: Int, sessions: List<Session>) {
         collectionStorage.addAndKeepOnlyNewestXTabs(collection, number, sessions)
         notifyObservers { onTabsAdded(collection, sessions) }
@@ -91,7 +96,7 @@ class TabCollectionStorage(
 
     fun removeTabFromCollection(tabCollection: TabCollection, tab: Tab) {
         if (tabCollection.tabs.size == 1 &&
-            tabCollection.id != cachedRecentlyClosedTabsCollection?.id
+            tabCollection.tag != context.getString(R.string.recently_deleted_tabs_collection_tag)
         ) {
             removeCollection(tabCollection)
         } else {

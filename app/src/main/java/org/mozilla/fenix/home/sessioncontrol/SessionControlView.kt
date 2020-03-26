@@ -88,14 +88,17 @@ private fun showCollections(
     tabs: List<Tab>,
     items: MutableList<AdapterItem>
 ) {
-    // If the collection is expanded, we want to add all of its tabs beneath it in the adapter
-    items.add(AdapterItem.CollectionHeader)
-    collections.map {
-        AdapterItem.CollectionItem(it, expandedCollections.contains(it.id), tabs.isNotEmpty())
-    }.forEach {
-        items.add(it)
-        if (it.expanded) {
-            items.addAll(collectionTabItems(it.collection))
+    val defaultCollection = collections.find { it.tag != null }
+    if (collections.size > 1 || defaultCollection?.tabs?.isNotEmpty() == true) {
+        // If the collection is expanded, we want to add all of its tabs beneath it in the adapter
+        items.add(AdapterItem.CollectionHeader)
+        collections.filter { it.tabs.isNotEmpty() }.sortedBy { it.tag ?: "z" }.map {
+            AdapterItem.CollectionItem(it, expandedCollections.contains(it.id), tabs.isNotEmpty())
+        }.forEach {
+            items.add(it)
+            if (it.expanded) {
+                items.addAll(collectionTabItems(it.collection))
+            }
         }
     }
 }
@@ -117,33 +120,37 @@ private fun onboardingAdapterItems(onboardingState: OnboardingState): List<Adapt
     val items: MutableList<AdapterItem> = mutableListOf(AdapterItem.OnboardingHeader)
 
     // Customize FxA items based on where we are with the account state:
-    items.addAll(when (onboardingState) {
-        OnboardingState.SignedOutNoAutoSignIn -> {
-            listOf(
-                AdapterItem.OnboardingManualSignIn
-            )
+    items.addAll(
+        when (onboardingState) {
+            OnboardingState.SignedOutNoAutoSignIn -> {
+                listOf(
+                    AdapterItem.OnboardingManualSignIn
+                )
+            }
+            is OnboardingState.SignedOutCanAutoSignIn -> {
+                listOf(
+                    AdapterItem.OnboardingAutomaticSignIn(onboardingState)
+                )
+            }
+            OnboardingState.SignedIn -> listOf()
         }
-        is OnboardingState.SignedOutCanAutoSignIn -> {
-            listOf(
-                AdapterItem.OnboardingAutomaticSignIn(onboardingState)
-            )
-        }
-        OnboardingState.SignedIn -> listOf()
-    })
+    )
 
-    items.addAll(listOf(
-        AdapterItem.OnboardingSectionHeader {
-            val appName = it.getString(R.string.app_name)
-            it.getString(R.string.onboarding_feature_section_header, appName)
-        },
-        AdapterItem.OnboardingWhatsNew,
-        AdapterItem.OnboardingTrackingProtection,
-        AdapterItem.OnboardingThemePicker,
-        AdapterItem.OnboardingPrivateBrowsing,
-        AdapterItem.OnboardingToolbarPositionPicker,
-        AdapterItem.OnboardingPrivacyNotice,
-        AdapterItem.OnboardingFinish
-    ))
+    items.addAll(
+        listOf(
+            AdapterItem.OnboardingSectionHeader {
+                val appName = it.getString(R.string.app_name)
+                it.getString(R.string.onboarding_feature_section_header, appName)
+            },
+            AdapterItem.OnboardingWhatsNew,
+            AdapterItem.OnboardingTrackingProtection,
+            AdapterItem.OnboardingThemePicker,
+            AdapterItem.OnboardingPrivateBrowsing,
+            AdapterItem.OnboardingToolbarPositionPicker,
+            AdapterItem.OnboardingPrivacyNotice,
+            AdapterItem.OnboardingFinish
+        )
+    )
 
     return items
 }
@@ -154,9 +161,10 @@ private fun HomeFragmentState.toAdapterList(): List<AdapterItem> = when (mode) {
     is Mode.Onboarding -> onboardingAdapterItems(mode.state)
 }
 
-private fun collectionTabItems(collection: TabCollection) = collection.tabs.mapIndexed { index, tab ->
+private fun collectionTabItems(collection: TabCollection) =
+    collection.tabs.mapIndexed { index, tab ->
         AdapterItem.TabInCollectionItem(collection, tab, index == collection.tabs.lastIndex)
-}
+    }
 
 @ExperimentalCoroutinesApi
 class SessionControlView(

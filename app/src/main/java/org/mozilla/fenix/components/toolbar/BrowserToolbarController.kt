@@ -226,7 +226,7 @@ class DefaultBrowserToolbarController(
                             previousFragmentId = R.id.browserFragment,
                             tabIds = arrayOf(currentSession.id),
                             selectedTabIds = arrayOf(currentSession.id),
-                            saveCollectionStep = if (tabCollectionStorage.cachedTabCollections.isEmpty()) {
+                            saveCollectionStep = if (tabCollectionStorage.nonDefaultTabCollections.isEmpty()) {
                                 SaveCollectionStep.NameCollection
                             } else {
                                 SaveCollectionStep.SelectCollection

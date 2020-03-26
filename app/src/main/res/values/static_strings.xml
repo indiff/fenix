@@ -33,5 +33,5 @@
     <!-- Application Services abbreviation used in AboutFragment -->
     <string name="app_services_abbreviation" translatable="false">AS</string>
     <!-- Extra tag added to recently deleted tabs collection -->
-    <string name="recently_deleted_tabs" translatable="false">"recently_deleted_tabs"</string>
+    <string name="recently_deleted_tabs_collection_tag" translatable="false">"recently_deleted_tabs"</string>
 </resources>

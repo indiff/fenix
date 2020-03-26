@@ -81,6 +81,15 @@
         android:title="@string/preferences_category_privacy_security"
         app:iconSpaceReserved="false">
 
+        <androidx.preference.DropDownPreference
+            android:icon="@drawable/ic_history"
+            android:defaultValue="@string/never"
+            android:entries="@array/auto_close_options_entries"
+            android:entryValues="@array/auto_close_options_entry_values"
+            android:key="@string/pref_key_auto_close_tabs"
+            android:summary="@string/auto_close_tabs_description"
+            android:title="@string/automatically_close_tabs_title" />
+
         <androidx.preference.Preference
             android:icon="@drawable/ic_private_browsing"
             android:key="@string/pref_key_private_browsing"
@@ -100,14 +109,6 @@
             android:icon="@drawable/ic_delete"
             android:key="@string/pref_key_delete_browsing_data"
             android:title="@string/preferences_delete_browsing_data" />
-
-        <androidx.preference.DropDownPreference
-            android:defaultValue="@string/never"
-            android:entries="@array/auto_close_options_entries"
-            android:entryValues="@array/auto_close_options_entry_values"
-            android:key="@string/pref_key_auto_close_tabs"
-            android:summary="@string/auto_close_tabs_description"
-            android:title="@string/automatically_close_tabs_title" />
 
         <androidx.preference.Preference
             android:icon="@drawable/ic_exit"

@@ -1288,10 +1288,13 @@
     <string name="recently_deleted_tabs_title">Recently Deleted Tabs</string>
 
     <!-- Automatically close tabs -->
-    <string name="automatically_close_tabs_title">Automatically close tabs</string>
+    <string name="automatically_close_tabs_title">Automatically close tabs that have not been opened</string>
     <string name="auto_close_tabs_description">%s</string>
     <string name="auto_close_tabs_never">Don\'t close automatically</string>
     <string name="auto_close_tabs_one_day">After one day</string>
     <string name="auto_close_tabs_one_week">After one week</string>
     <string name="auto_close_tabs_one_month">After one month</string>
+
+    <!-- Text for the menu button to remove all tabs from a default collection -->
+    <string name="collection_remove_all_tabs">Remove all tabs</string>
 </resources>

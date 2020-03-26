@@ -8,6 +8,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.os.Bundle
+import mozilla.components.browser.session.Session
 import org.mozilla.fenix.ext.settings
 
 class PendingSessionDeletionManager(application: Application) :
@@ -15,9 +16,21 @@ class PendingSessionDeletionManager(application: Application) :
 
     private val sessionIdsPendingDeletion = mutableSetOf<String>()
 
+    private val cachedSessions = mutableSetOf<Session>()
+
     init {
         application.registerActivityLifecycleCallbacks(this)
     }
+
+    fun addCachedSession(session: Session) {
+        cachedSessions.add(session)
+    }
+
+    fun clearCachedSessions() {
+        cachedSessions.clear()
+    }
+
+    fun getCachedSessions() = cachedSessions
 
     fun addSession(sessionId: String) {
         sessionIdsPendingDeletion.add(sessionId)
